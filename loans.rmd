@@ -5,6 +5,7 @@ Peer-to-peer loans service [Lending Club][lending] made publicly available a dat
 
 ```{r comment=NA,echo=FALSE,message=FALSE,results='asis'}
 setwd('~/git/coursera-loan/')
+download.file('https://spark-public.s3.amazonaws.com/dataanalysis/loansData.csv',method='curl',destfile='loansData.csv')
 require(randomForest)
 require(ggplot2)
 require(xtable)
@@ -43,7 +44,7 @@ To figure out what are important parameters while issuing a new loan I employed 
 ###Results
 =============
 
-Once randomForst model is built "importance" variable can be refereed for weights of all features. The following graph nr.1 shows 15 important features. "FICO.Range" is most important variable while issuing a new loan, followed by "Loan.Length" which is 5 times less important. "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" are important, however weights are less significant. 
+Once randomForst model is built "importance" variable can be refereed for weights of all features. The following graph Nr.1 shows 15 important features. "FICO.Range" is most important variable while issuing a new loan, followed by "Loan.Length" which is 5 times less important. "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" are important, however weights are less significant. 
 
 Interesting to note, that "Home.Ownership" and "Monthly.Income" have little importance. 
 
@@ -61,20 +62,25 @@ result=model$importance[order(model$importance,decreasing=TRUE),]
 result=head(data.frame(Feature=factor(names(result),levels=as.character(names(result))),Weight=as.integer(model$importance[order(model$importance,decreasing=TRUE),])),15)
 print(xtable(result),type='html')
 
-ggplot(result,aes(Weight,Feature))+geom_point()+labs(title = "Importance of features") 
+ggplot(result,aes(Weight,Feature))+geom_point()+labs(title = "Nr.1 Importance of features") 
 ```
 
 
 ###Conclusions
 =============
 
-In this analysis I tried to determine which parameter are most important while issuing a new loan. My solution involves Random Forest algorithm and data manipulation, which shows that most important features are following: "FICO.Range", "Loan.Length", "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" and etc.
-
-
+In this analysis I tried to determine which parameter are most important while issuing a new loan. My solution involves Random Forest algorithm and data manipulation, which shows that most important features are following: "FICO.Range", "Loan.Length", "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" and etc.  
+You can find the code of this analysis [here][code].
    
+###Links:
+========
+Data set: [https://www.lendingclub.com/home.action][lending]  
+Random Fofest: [http://oz.berkeley.edu/users/breiman/Using_random_forests_V3.1.pdf][rf]  
+Source code of analysi: [https://github.com/kafka399/coursera-loans][code]  
 
 [lending]: https://www.lendingclub.com/home.action
 [rf]: http://oz.berkeley.edu/users/breiman/Using_random_forests_V3.1.pdf
+[code]:https://github.com/kafka399/coursera-loans
 
 
 
