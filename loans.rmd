@@ -1,0 +1,81 @@
+###Title
+========================================================
+
+Peer-to-peer loans service [Lending Club][lending] made publicly available a data set of 2500 loans. Based on former data set, I will try to identify and quantify associations between the interest rate of the loan and the other variables in the data set.
+
+```{r comment=NA,echo=FALSE,message=FALSE,results='asis'}
+setwd('~/git/coursera-loan/')
+require(randomForest)
+require(ggplot2)
+require(xtable)
+loans=read.csv('loansData.csv',stringsAsFactors=FALSE)
+loans$Interest.Rate=as.numeric(sub('%','',loans$Interest.Rate))
+loans$Loan.Length=as.numeric(sub(' months','',loans$Loan.Length))
+loans$Loan.Purpose=as.factor(loans$Loan.Purpose)
+loans$Debt.To.Income.Ratio=as.numeric(sub('%','',loans$Debt.To.Income.Ratio))
+loans$Home.Ownership=as.factor(loans$Home.Ownership)
+
+loans$FICO.Range=sapply(strsplit(loans$FICO.Range,'-'),function(x){mean(as.integer(x))})
+loans$Employment.Length=as.factor(loans$Employment.Length)
+
+loans$State=as.factor(loans$State)
+loans=data.frame(loans[,-match(c('State'),colnames(loans))],model.matrix(~State-1,loans))
+tmp=grep('State',colnames(loans))
+for(i in 1:length(tmp)){loans[,tmp[i]]=as.factor(loans[,tmp[i]])}
+```
+
+###Methods
+=============
+
+While preprocessing the data set I have removed percentage sign (%) and converted columns "Interest.Rate" and "Debt.To.Income.Ratio" into numeric type. "Loan.Length" column has been converted into numeric type while removing "months" word. For "FICO.Range" variable I have derived the mean of range. Random Forest algorithm is more precise when values are numeric where is possible.
+
+
+"State" variable has 46 unique values and the algorithm can't cope with so many factor. For that reason I used "dummy variable" and I have created 46 new columns for every state, where 1 means loans was issued in that state and 0 - otherwise. 
+
+
+To figure out what are important parameters while issuing a new loan I employed [Random Forest][rf] algorithm. The advantages of the former algorithm are following:
+
+   * Very easy to set-up
+   * Works very well with nonlinear features
+   * Fast
+
+
+###Results
+=============
+
+Once randomForst model is built "importance" variable can be refereed for weights of all features. The following graph nr.1 shows 15 important features. "FICO.Range" is most important variable while issuing a new loan, followed by "Loan.Length" which is 5 times less important. "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" are important, however weights are less significant. 
+
+Interesting to note, that "Home.Ownership" and "Monthly.Income" have little importance. 
+
+
+Here is a list of weights of features:
+
+
+```{r comment=NA,echo=FALSE,message=FALSE,results='asis'}
+train=loans
+#remove NA
+train=train[-which(is.na(train$Open.CREDIT.Lines)),]
+set.seed(1234)
+model=randomForest(Interest.Rate~.,data=train,ntree=100)
+result=model$importance[order(model$importance,decreasing=TRUE),]
+result=head(data.frame(Feature=factor(names(result),levels=as.character(names(result))),Weight=as.integer(model$importance[order(model$importance,decreasing=TRUE),])),15)
+print(xtable(result),type='html')
+
+ggplot(result,aes(Weight,Feature))+geom_point()+labs(title = "Importance of features") 
+```
+
+
+###Conclusions
+=============
+
+In this analysis I tried to determine which parameter are most important while issuing a new loan. My solution involves Random Forest algorithm and data manipulation, which shows that most important features are following: "FICO.Range", "Loan.Length", "Amount.Funded.By.Investors", "Amount.Requested", "Employment.Length" and etc.
+
+
+   
+
+[lending]: https://www.lendingclub.com/home.action
+[rf]: http://oz.berkeley.edu/users/breiman/Using_random_forests_V3.1.pdf
+
+
+
+
