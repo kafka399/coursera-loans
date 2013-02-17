@@ -4,3 +4,4 @@ figure
 *.rda
 *.csv
 *.pdf
+!README.md
